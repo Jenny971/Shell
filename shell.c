@@ -75,9 +75,7 @@ void PrintCommand(struct Command *command)
     int i;
     for(i = 0;i < command->num_sub_commands;i++)
     {
-        
         printf("commands %d:\n",i);
-
         PrintArgs(command->sub_commands[i].argv);
     }
     
@@ -117,9 +115,7 @@ void ReadRedirectsAndBackground(struct Command *command)
         }
         if(command->stdin_redirect != NULL) break;
     }
-    
-    
-    
+
     // read output file name
     for(i = last - 1;i>=0;i--)
     {
@@ -158,8 +154,6 @@ void ReadRedirectsAndBackground(struct Command *command)
     {
         command->background = 0;
     }
-    
-    
 }
 
 int SpawnChildren(struct Command *command){
@@ -175,53 +169,54 @@ int SpawnChildren(struct Command *command){
 	}
     
     for (i = 0; i<command->num_sub_commands; i++){
-		children[i] = fork();
-		if (children[i] < 0){
-			fprintf(stderr, "fork failed\n");
-			exit(1);
-		}
-		else if (children[i] == 0) //child process
+	children[i] = fork();
+	if (children[i] < 0)
+	{
+		fprintf(stderr, "fork failed\n");
+		exit(1);
+	}
+	else if (children[i] == 0) //child process
         {
-			if (command->num_sub_commands >= 2)
-            {
-                int j;
-				for(j=0; j<command->num_sub_commands-1; j++)
-                {
-					if (j != i-1){
-						close(fds[j][0]);
-					}
-					if (j != i){
-						close(fds[j][1]);
-					}
+		if (command->num_sub_commands >= 2)
+		{
+                	int j;
+			for(j=0; j<command->num_sub_commands-1; j++)
+               		{
+				if (j != i-1)
+				{
+					close(fds[j][0]);
 				}
-				if (i == 0){        //the first subcommand
-					close(1);
-					dup(fds[i][1]);
-					
-				}
-				else if (i == command->num_sub_commands-1)
-                {
-                    close(0);
-					dup(fds[i-1][0]);
-					
-				}
-				else
-                {
-					close(0);
-					dup(fds[i - 1][0]);
-					close(1);
-					dup(fds[i][1]);
+				if (j != i){
+					close(fds[j][1]);
 				}
 			}
-            
+			if (i == 0)
+			{        //the first subcommand
+				close(1);
+				dup(fds[i][1]);			
+			}
+			else if (i == command->num_sub_commands-1)
+               		{
+                 		close(0);
+				dup(fds[i-1][0]);
+			}
+			else
+                	{
+				close(0);
+				dup(fds[i - 1][0]);
+				close(1);
+				dup(fds[i][1]);
+			}
+		}
             if (i == 0 && command->stdin_redirect != NULL){
                 close(0);
                 int fd = open(command->stdin_redirect, O_RDONLY);
-                if (fd < 0){
+                if (fd < 0)
+		{
                     fprintf(stderr, "%s: File not found\n",command->stdin_redirect);
                     exit(1);
                 }
-            }
+	    }
      
             if (i == command->num_sub_commands-1 && command->stdout_redirect != NULL)
             {
@@ -233,11 +228,11 @@ int SpawnChildren(struct Command *command){
                     exit(1);
                 }
             }
-			execvp(command->sub_commands[i].argv[0], command->sub_commands[i].argv);
+	    execvp(command->sub_commands[i].argv[0], command->sub_commands[i].argv);
             fprintf(stderr, "%s: Command not found\n",command->sub_commands[i].line);
             exit(1);
-		}
 	}
+    }
     for (i=0; i<command->num_sub_commands-1; i++)
     {
         close(fds[i][0]);
@@ -251,22 +246,18 @@ int SpawnChildren(struct Command *command){
 /* change cwd */
 void cd(char *p)
 {
-    
-
     int change = chdir(p); //change dir
     if(change != 0)
         fprintf(stderr,"%s is nod a path,please check again \n",p);
     if (getcwd(cwd, sizeof(cwd)) == NULL)
     perror("getcwd error");
-
-    
 }
 
 int main()
 {
 	char s[200];
 	struct Command *command;
-    int pid_lastsub;
+	int pid_lastsub;
     
     pid_t pid_transfer;
     
@@ -315,11 +306,9 @@ int main()
         ReadCommand(s, command);
         ReadRedirectsAndBackground(command);
         
-        //		PrintCommand(command);
         if(strcmp(command->sub_commands[0].argv[0],"cd"))	//if not cd command
         {
-
-        	pid_t pid_main = fork();
+		pid_t pid_main = fork();
         	if (pid_main < 0)
         	{
         		perror("fork failed");
@@ -359,12 +348,11 @@ int main()
 					printf("[%d]\n", pid_lastsub);
 				}
 			}
-		}		
-        else	//if cd command
-        {
-            cd(command->sub_commands[0].argv[1]);
-        }
-		
+		}
+		else	//if cd command
+        	{
+            		cd(command->sub_commands[0].argv[1]);
+        	}
 		free (command);
 	}
     
