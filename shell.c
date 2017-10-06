@@ -7,7 +7,7 @@
 
 #define MAX_SUB_COMMANDS   5
 #define MAX_ARGS           10
-char cwd[1024];
+char cwd[1024];				//current working directory
 
 struct SubCommand
 {
@@ -241,48 +241,44 @@ int SpawnChildren(struct Command *command){
     return children[command->num_sub_commands-1];
 }
 
-
-
 /* change cwd */
 void cd(char *p)
 {
-    int change = chdir(p); //change dir
+    int change = chdir(p); 	//change dir
     if(change != 0)
-        fprintf(stderr,"%s is nod a path,please check again \n",p);
+        fprintf(stderr,"%s is not a path, please check again \n",p);
     if (getcwd(cwd, sizeof(cwd)) == NULL)
-    perror("getcwd error");
+    	perror("getcwd error");
 }
 
 int main()
 {
-	char s[200];
-	struct Command *command;
-	int pid_lastsub;
+    char s[200];	//get the string entered by the user
+    struct Command *command;
+    int pid_lastsub;
     
     pid_t pid_transfer;
     
     int fds_main[2];
     pipe(fds_main);
-    /* save current directory */
 
+    /* save current directory */
     char cwd_save[1024];
     if (getcwd(cwd_save, sizeof(cwd_save)) == NULL)
         perror("getcwd error");
     strcpy(cwd, cwd_save);
-    
-	while(1)	//core loop
-	{
-		command = (struct Command *)malloc(sizeof(struct Command));     //?
-		command->background = 0;            //0 for forground, 1 for background.
-		command->stdin_redirect = NULL;
-		command->stdout_redirect = NULL;
-		
-
+	
+    while(1)	//core loop
+    {
+	command = (struct Command *)malloc(sizeof(struct Command));
+	command->background = 0;            //0 for foreground, 1 for background.
+	command->stdin_redirect = NULL;
+	command->stdout_redirect = NULL;
         
-		printf("%s $ ",cwd);
-		fgets(s, sizeof s, stdin);
+	printf("%s $ ",cwd);
+	fgets(s, sizeof s, stdin);
 		
-		pid_transfer = waitpid(-1, NULL, WNOHANG);
+	pid_transfer = waitpid(-1, NULL, WNOHANG);
 		if (pid_transfer != -1)	//if has child process
 		{
 			fcntl(fds_main[0], F_SETFL, fcntl(fds_main[0], F_GETFL) | O_NONBLOCK);
